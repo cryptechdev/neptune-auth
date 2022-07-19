@@ -1,0 +1,11 @@
+# Build results
+/target/
+
+# Cargo+Git helper file
+Cargo.lock
+
+# Text file backups
+**/*.rs.bk
+
+# macOS
+.DS_Store
