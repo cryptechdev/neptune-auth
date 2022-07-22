@@ -10,6 +10,12 @@ pub enum PermissionGroup {
     Restricted(Vec<Addr>),
 }
 
+impl From<Vec<Addr>> for PermissionGroup {
+    fn from(vec: Vec<Addr>) -> Self {
+        Self::Restricted(vec)
+    }
+}
+
 pub trait GetPermissionGroup: Debug {
     fn get_permission_group(&self, deps: Deps, env: &Env) -> Result<PermissionGroup, NeptuneAuthorizationError>;
 }
