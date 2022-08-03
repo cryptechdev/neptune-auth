@@ -20,8 +20,8 @@ pub enum NeptuneAuthorizationError {
     OverflowError(#[from] OverflowError),
 
     #[error("{} Unauthorized: {0}", NEPT_AUTH_ERR)]
-    Unauthorized (String),
+    Unauthorized(String),
 
     #[error("{} Invalid permission group: {0}", NEPT_AUTH_ERR)]
-    InvalidPermissionGroup (String),
+    InvalidPermissionGroup(String),
 }

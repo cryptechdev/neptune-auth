@@ -1,8 +1,6 @@
-use std::{fmt::Debug, error::Error};
-use cosmwasm_std::{Deps, Addr, Env,};
-use crate::{
-    error::{NeptuneAuthorizationError, NeptuneAuthorizationResult},
-};
+use crate::error::{NeptuneAuthorizationError, NeptuneAuthorizationResult};
+use cosmwasm_std::{Addr, Deps, Env};
+use std::{error::Error, fmt::Debug};
 
 #[derive(Clone, Debug)]
 pub enum PermissionGroup {
@@ -11,13 +9,15 @@ pub enum PermissionGroup {
 }
 
 impl From<Vec<Addr>> for PermissionGroup {
-    fn from(vec: Vec<Addr>) -> Self {
-        Self::Restricted(vec)
-    }
+    fn from(vec: Vec<Addr>) -> Self { Self::Restricted(vec) }
 }
 
 pub trait GetPermissionGroup: Debug {
-    fn get_permission_group(&self, deps: Deps, env: &Env) -> Result<PermissionGroup, Box<dyn Error>>;
+    fn get_permission_group(
+        &self,
+        deps: Deps,
+        env: &Env,
+    ) -> Result<PermissionGroup, Box<dyn Error>>;
 }
 
 pub type PermissionGroupList<'a> = Vec<&'a dyn GetPermissionGroup>;
@@ -29,11 +29,14 @@ pub enum BasePermissionGroups {
 }
 
 impl GetPermissionGroup for BasePermissionGroups {
-    fn get_permission_group(&self, _deps: Deps, env: &Env) -> Result<PermissionGroup, Box<dyn Error>> {
-
+    fn get_permission_group(
+        &self,
+        _deps: Deps,
+        env: &Env,
+    ) -> Result<PermissionGroup, Box<dyn Error>> {
         Ok(match self {
-            Self::Internal          => PermissionGroup::Restricted(vec![env.contract.address.clone()]),
-            Self::Public            => PermissionGroup::Public,
+            Self::Internal => PermissionGroup::Restricted(vec![env.contract.address.clone()]),
+            Self::Public => PermissionGroup::Public,
         })
     }
 }
@@ -66,36 +69,50 @@ pub fn authorize_permissions(
     addr: &Addr,
     permissions: &PermissionGroupList,
 ) -> Result<(), Box<dyn Error>> {
-    let collected_permissions: Result<Vec<PermissionGroup>, Box<dyn Error>> = permissions.iter()
-    .map(|x| x.get_permission_group(deps, env))
-    .collect();
+    let collected_permissions: Result<Vec<PermissionGroup>, Box<dyn Error>> = permissions
+        .iter()
+        .map(|x| x.get_permission_group(deps, env))
+        .collect();
 
     let flattened = flatten_permissions(collected_permissions?)?;
 
     match flattened {
         PermissionGroup::Public => return Ok(()),
         PermissionGroup::Restricted(vec) => {
-            if vec.iter().any(|i| *i == *addr) { return Ok(())}
-            else {
-                return Err(NeptuneAuthorizationError::Unauthorized(format!("Unauthorized execution: {} is not {:?}", *addr, permissions)).into()) 
+            if vec.iter().any(|i| *i == *addr) {
+                return Ok(());
+            } else {
+                return Err(NeptuneAuthorizationError::Unauthorized(format!(
+                    "Unauthorized execution: {} is not {:?}",
+                    *addr, permissions
+                ))
+                .into());
             }
-        },
+        }
     }
 }
 
-fn flatten_permissions(permission_group_vec: Vec<PermissionGroup>) -> NeptuneAuthorizationResult<PermissionGroup> {
+fn flatten_permissions(
+    permission_group_vec: Vec<PermissionGroup>,
+) -> NeptuneAuthorizationResult<PermissionGroup> {
     if permission_group_vec.len() == 0 {
-        return Err(NeptuneAuthorizationError::InvalidPermissionGroup("No permission groups supplied".to_string()));
+        return Err(NeptuneAuthorizationError::InvalidPermissionGroup(
+            "No permission groups supplied".to_string(),
+        ));
     } else if permission_group_vec.len() == 1 {
-        return Ok(permission_group_vec[0].clone())
+        return Ok(permission_group_vec[0].clone());
     } else {
         let mut result_vec: Vec<Addr> = vec![];
         for i in permission_group_vec {
             match i {
-                PermissionGroup::Public => return Err(NeptuneAuthorizationError::InvalidPermissionGroup("Public must be only entry in permission group list".to_string())),
-                PermissionGroup::Restricted(vec) => result_vec = [result_vec, vec].concat()
+                PermissionGroup::Public => {
+                    return Err(NeptuneAuthorizationError::InvalidPermissionGroup(
+                        "Public must be only entry in permission group list".to_string(),
+                    ))
+                }
+                PermissionGroup::Restricted(vec) => result_vec = [result_vec, vec].concat(),
             }
         }
-        return Ok(PermissionGroup::Restricted(result_vec))
+        return Ok(PermissionGroup::Restricted(result_vec));
     }
 }
