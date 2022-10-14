@@ -9,6 +9,9 @@ homepage = "https://nept.finance"
 [lib]
 crate-type = ["cdylib", "rlib"]
 
+[features]
+neptune_test = []
+
 [dependencies]
 cosmwasm-std = "1.0.0"
 thiserror = "1.0.31"
