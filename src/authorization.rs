@@ -49,7 +49,7 @@ pub fn neptune_execute_authorize<M, A: NeptuneContractAuthorization<M>>(
     let permission_result = A::permissions(message);
 
     match permission_result {
-        Ok(p) => authorize_permissions(deps.clone(), env, address, &p),
+        Ok(p) => authorize_permissions(deps, env, address, &p),
         Err(e) => Err(e),
     }
 }
@@ -63,26 +63,26 @@ pub fn authorize_permissions(
     let flattened = flatten_permissions(collected_permissions?)?;
 
     match flattened {
-        PermissionGroup::Public => return Ok(()),
+        PermissionGroup::Public => Ok(()),
         PermissionGroup::Restricted(vec) => {
             if vec.iter().any(|i| *i == *addr) {
-                return Ok(());
+                Ok(())
             } else {
-                return Err(NeptuneAuthorizationError::Unauthorized(format!(
+                Err(NeptuneAuthorizationError::Unauthorized(format!(
                     "Unauthorized execution: {} is not {:?}",
                     *addr, permissions
                 ))
-                .into());
+                .into())
             }
         }
     }
 }
 
 fn flatten_permissions(permission_group_vec: Vec<PermissionGroup>) -> NeptuneAuthorizationResult<PermissionGroup> {
-    if permission_group_vec.len() == 0 {
-        return Err(NeptuneAuthorizationError::InvalidPermissionGroup("No permission groups supplied".to_string()));
+    if permission_group_vec.is_empty() {
+        Err(NeptuneAuthorizationError::InvalidPermissionGroup("No permission groups supplied".to_string()))
     } else if permission_group_vec.len() == 1 {
-        return Ok(permission_group_vec[0].clone());
+        Ok(permission_group_vec[0].clone())
     } else {
         let mut result_vec: Vec<Addr> = vec![];
         for i in permission_group_vec {
