@@ -1,8 +1,8 @@
-use std::{error::Error, fmt::Debug};
+use std::fmt::Debug;
 
 use cosmwasm_std::{Addr, Deps, Env};
 
-use crate::error::{NeptuneAuthorizationError, NeptuneAuthorizationResult};
+use crate::error::{NeptAuthError, NeptuneAuthorizationResult};
 
 #[derive(Clone, Debug)]
 pub enum PermissionGroup {
@@ -15,7 +15,7 @@ impl From<Vec<Addr>> for PermissionGroup {
 }
 
 pub trait GetPermissionGroup: Debug {
-    fn get_permission_group(&self, deps: Deps, env: &Env) -> Result<PermissionGroup, Box<dyn Error>>;
+    fn get_permission_group(&self, deps: Deps, env: &Env) -> Result<PermissionGroup, NeptAuthError>;
 }
 
 pub type PermissionGroupList<'a> = Vec<&'a dyn GetPermissionGroup>;
@@ -27,7 +27,7 @@ pub enum BasePermissionGroups {
 }
 
 impl GetPermissionGroup for BasePermissionGroups {
-    fn get_permission_group(&self, _deps: Deps, env: &Env) -> Result<PermissionGroup, Box<dyn Error>> {
+    fn get_permission_group(&self, _deps: Deps, env: &Env) -> Result<PermissionGroup, NeptAuthError> {
         Ok(match self {
             Self::Internal => PermissionGroup::Restricted(vec![env.contract.address.clone()]),
             Self::Public => PermissionGroup::Public,
@@ -36,7 +36,7 @@ impl GetPermissionGroup for BasePermissionGroups {
 }
 
 pub trait NeptuneContractAuthorization<M> {
-    fn permissions(msg: &M) -> Result<PermissionGroupList, Box<dyn Error>>;
+    fn permissions(msg: &M) -> Result<PermissionGroupList, NeptAuthError>;
 }
 
 /// Structure to pass the base authorization levels for a global permissions check on all executes
@@ -45,7 +45,7 @@ pub struct BaseAuthorization {}
 
 pub fn neptune_execute_authorize<M, A: NeptuneContractAuthorization<M>>(
     deps: Deps, env: &Env, address: &Addr, message: &M,
-) -> Result<(), Box<dyn Error>> {
+) -> Result<(), NeptAuthError> {
     let permission_result = A::permissions(message);
 
     match permission_result {
@@ -56,8 +56,8 @@ pub fn neptune_execute_authorize<M, A: NeptuneContractAuthorization<M>>(
 
 pub fn authorize_permissions(
     deps: Deps, env: &Env, addr: &Addr, permissions: &PermissionGroupList,
-) -> Result<(), Box<dyn Error>> {
-    let collected_permissions: Result<Vec<PermissionGroup>, Box<dyn Error>> =
+) -> Result<(), NeptAuthError> {
+    let collected_permissions: Result<Vec<PermissionGroup>, NeptAuthError> =
         permissions.iter().map(|x| x.get_permission_group(deps, env)).collect();
 
     let flattened = flatten_permissions(collected_permissions?)?;
@@ -68,11 +68,7 @@ pub fn authorize_permissions(
             if vec.iter().any(|i| *i == *addr) {
                 Ok(())
             } else {
-                Err(NeptuneAuthorizationError::Unauthorized(format!(
-                    "Unauthorized execution: {} is not {:?}",
-                    *addr, permissions
-                ))
-                .into())
+                Err(NeptAuthError::Unauthorized(format!("Unauthorized execution: {} is not {:?}", *addr, permissions)))
             }
         }
     }
@@ -80,7 +76,7 @@ pub fn authorize_permissions(
 
 fn flatten_permissions(permission_group_vec: Vec<PermissionGroup>) -> NeptuneAuthorizationResult<PermissionGroup> {
     if permission_group_vec.is_empty() {
-        Err(NeptuneAuthorizationError::InvalidPermissionGroup("No permission groups supplied".to_string()))
+        Err(NeptAuthError::InvalidPermissionGroup("No permission groups supplied".to_string()))
     } else if permission_group_vec.len() == 1 {
         Ok(permission_group_vec[0].clone())
     } else {
@@ -88,7 +84,7 @@ fn flatten_permissions(permission_group_vec: Vec<PermissionGroup>) -> NeptuneAut
         for i in permission_group_vec {
             match i {
                 PermissionGroup::Public => {
-                    return Err(NeptuneAuthorizationError::InvalidPermissionGroup(
+                    return Err(NeptAuthError::InvalidPermissionGroup(
                         "Public must be only entry in permission group list".to_string(),
                     ))
                 }

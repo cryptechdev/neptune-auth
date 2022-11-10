@@ -1,27 +1,27 @@
 use cosmwasm_std::{OverflowError, StdError};
 use thiserror::Error;
 
-pub type NeptuneAuthorizationResult<T> = core::result::Result<T, NeptuneAuthorizationError>;
+pub type NeptuneAuthorizationResult<T> = core::result::Result<T, NeptAuthError>;
 
-const NEPT_AUTH_ERR: &str = "Neptune Authorization Error -";
+const AUTH_ERR: &str = "Neptune Authorization Error -";
 
 #[derive(Error, Debug, PartialEq)]
-pub enum NeptuneAuthorizationError {
+pub enum NeptAuthError {
     #[error("{0}")]
     Error(String),
 
-    #[error("{} Generic: {0}", NEPT_AUTH_ERR)]
+    #[error("{} Generic: {0}", AUTH_ERR)]
     Generic(String),
 
-    #[error("{} StdError: {0}", NEPT_AUTH_ERR)]
+    #[error("{} StdError: {0}", AUTH_ERR)]
     Std(#[from] StdError),
 
-    #[error("{} OverflowError: {0}", NEPT_AUTH_ERR)]
+    #[error("{} OverflowError: {0}", AUTH_ERR)]
     OverflowError(#[from] OverflowError),
 
-    #[error("{} Unauthorized: {0}", NEPT_AUTH_ERR)]
+    #[error("{} Unauthorized: {0}", AUTH_ERR)]
     Unauthorized(String),
 
-    #[error("{} Invalid permission group: {0}", NEPT_AUTH_ERR)]
+    #[error("{} Invalid permission group: {0}", AUTH_ERR)]
     InvalidPermissionGroup(String),
 }
