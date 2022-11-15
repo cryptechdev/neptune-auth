@@ -10,6 +10,7 @@ homepage = "https://nept.finance"
 crate-type = ["cdylib", "rlib"]
 
 [features]
+# TODO: remove these defaults for production
 default=["neptune_test"]
 neptune_test = []
 
