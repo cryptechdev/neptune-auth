@@ -43,6 +43,7 @@ pub trait NeptuneContractAuthorization<M> {
 #[derive(Copy, Clone)]
 pub struct BaseAuthorization {}
 
+#[allow(unreachable_code, unused_variables)]
 pub fn neptune_execute_authorize<M, A: NeptuneContractAuthorization<M>>(
     deps: Deps, env: &Env, address: &Addr, message: &M,
 ) -> Result<(), NeptAuthError> {
