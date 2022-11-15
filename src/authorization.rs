@@ -46,7 +46,7 @@ pub struct BaseAuthorization {}
 pub fn neptune_execute_authorize<M, A: NeptuneContractAuthorization<M>>(
     deps: Deps, env: &Env, address: &Addr, message: &M,
 ) -> Result<(), NeptAuthError> {
-    #[cfg(neptune_test)]
+    #[cfg(feature = "neptune_test")]
     return Ok(());
 
     let permission_result = A::permissions(message);
