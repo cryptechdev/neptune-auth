@@ -9,11 +9,6 @@ homepage = "https://nept.finance"
 [lib]
 crate-type = ["cdylib", "rlib"]
 
-[features]
-# TODO: remove these defaults for production
-default=["neptune_test"]
-neptune_test = []
-
 [dependencies]
 cosmwasm-std = "1.1.5"
 thiserror = "1.0.31"
