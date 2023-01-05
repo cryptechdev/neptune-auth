@@ -14,6 +14,10 @@ impl From<Vec<Addr>> for PermissionGroup {
     fn from(vec: Vec<Addr>) -> Self { Self::Restricted(vec) }
 }
 
+pub trait NeptuneAuth<M> {
+    fn permissions(msg: &M) -> Result<PermissionGroupList, NeptAuthError>;
+}
+
 pub trait GetPermissionGroup: Debug {
     fn get_permission_group(&self, deps: Deps, env: &Env) -> Result<PermissionGroup, NeptAuthError>;
 }
@@ -35,17 +39,15 @@ impl GetPermissionGroup for BasePermissionGroups {
     }
 }
 
-pub trait NeptuneContractAuthorization<M> {
-    fn permissions(msg: &M) -> Result<PermissionGroupList, NeptAuthError>;
-}
-
-pub fn neptune_execute_authorize<M, A: NeptuneContractAuthorization<M>>(
+/// This function is placed inside the contracts' execute function.
+pub fn neptune_execute_authorize<M, A: NeptuneAuth<M>>(
     deps: Deps, env: &Env, address: &Addr, message: &M,
 ) -> Result<(), NeptAuthError> {
     let permissions = A::permissions(message)?;
     authorize_permissions(deps, env, address, &permissions)
 }
 
+/// Verifies that the given address is contained within the given permission group list.
 pub fn authorize_permissions(
     deps: Deps, env: &Env, addr: &Addr, permissions: &PermissionGroupList,
 ) -> Result<(), NeptAuthError> {
@@ -60,21 +62,28 @@ pub fn authorize_permissions(
             if vec.iter().any(|i| *i == *addr) {
                 Ok(())
             } else {
-                Err(NeptAuthError::Unauthorized(format!("Unauthorized execution: {} is not {:?}", *addr, permissions)))
+                Err(NeptAuthError::Unauthorized {
+                    sender:           addr.clone(),
+                    permission_group: format!("{permissions:?}"),
+                })
             }
         }
     }
 }
 
+/// Flattens a permission group list into a single permission group.
 fn flatten_permissions(permission_group_vec: Vec<PermissionGroup>) -> NeptuneAuthorizationResult<PermissionGroup> {
     if permission_group_vec.is_empty() {
+        // Don't allow empty permission groups.
         Err(NeptAuthError::InvalidPermissionGroup("No permission groups supplied".to_string()))
     } else if permission_group_vec.len() == 1 {
+        // We only allow the public permission group if it alone.
         Ok(permission_group_vec[0].clone())
     } else {
+        // General case, flatten all the permission groups into one.
         let mut result_vec: Vec<Addr> = vec![];
-        for i in permission_group_vec {
-            match i {
+        for permission_group in permission_group_vec {
+            match permission_group {
                 PermissionGroup::Public => {
                     return Err(NeptAuthError::InvalidPermissionGroup(
                         "Public must be only entry in permission group list".to_string(),
