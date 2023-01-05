@@ -34,12 +34,15 @@ pub trait GetPermissionGroup: Debug {
 
 pub type PermissionGroupList<'a> = Vec<&'a dyn GetPermissionGroup>;
 
+/// These base permission groups are starting points.
+/// You should create other enums for custom permission groups.
 #[derive(Clone, Debug)]
 pub enum BasePermissionGroups {
     Internal,
     Public,
 }
 
+/// This is an example of how to implement the GetPermissionGroup trait.
 impl GetPermissionGroup for BasePermissionGroups {
     fn get_permission_group(&self, _deps: Deps, env: &Env) -> Result<PermissionGroup, NeptAuthError> {
         Ok(match self {
