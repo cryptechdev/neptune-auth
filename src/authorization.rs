@@ -39,19 +39,11 @@ pub trait NeptuneContractAuthorization<M> {
     fn permissions(msg: &M) -> Result<PermissionGroupList, NeptAuthError>;
 }
 
-/// Structure to pass the base authorization levels for a global permissions check on all executes
-#[derive(Copy, Clone)]
-pub struct BaseAuthorization {}
-
 pub fn neptune_execute_authorize<M, A: NeptuneContractAuthorization<M>>(
     deps: Deps, env: &Env, address: &Addr, message: &M,
 ) -> Result<(), NeptAuthError> {
-    let permission_result = A::permissions(message);
-
-    match permission_result {
-        Ok(p) => authorize_permissions(deps, env, address, &p),
-        Err(e) => Err(e),
-    }
+    let permissions = A::permissions(message)?;
+    authorize_permissions(deps, env, address, &permissions)
 }
 
 pub fn authorize_permissions(
