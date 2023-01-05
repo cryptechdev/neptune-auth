@@ -4,6 +4,7 @@ use cosmwasm_std::{Addr, Deps, Env};
 
 use crate::error::{NeptAuthError, NeptuneAuthorizationResult};
 
+/// The basic type for a permission group.
 #[derive(Clone, Debug)]
 pub enum PermissionGroup {
     Public,
@@ -14,10 +15,19 @@ impl From<Vec<Addr>> for PermissionGroup {
     fn from(vec: Vec<Addr>) -> Self { Self::Restricted(vec) }
 }
 
-pub trait NeptuneAuth<M> {
-    fn permissions(msg: &M) -> Result<PermissionGroupList, NeptAuthError>;
+/// This trait should be derived for any type that requires authorization.
+pub trait NeptuneAuth {
+    fn permissions(&self) -> Result<PermissionGroupList, NeptAuthError>;
+
+    /// This function is placed inside the contracts' execute function.
+    fn neptune_authorize(&self, deps: Deps, env: &Env, address: &Addr) -> Result<(), NeptAuthError> {
+        let permissions = self.permissions()?;
+        authorize_permissions(deps, env, address, &permissions)
+    }
 }
 
+/// This trait determines how a permission group is retrieved.
+/// It will usually be derived for your configuration type.
 pub trait GetPermissionGroup: Debug {
     fn get_permission_group(&self, deps: Deps, env: &Env) -> Result<PermissionGroup, NeptAuthError>;
 }
@@ -37,14 +47,6 @@ impl GetPermissionGroup for BasePermissionGroups {
             Self::Public => PermissionGroup::Public,
         })
     }
-}
-
-/// This function is placed inside the contracts' execute function.
-pub fn neptune_execute_authorize<M, A: NeptuneAuth<M>>(
-    deps: Deps, env: &Env, address: &Addr, message: &M,
-) -> Result<(), NeptAuthError> {
-    let permissions = A::permissions(message)?;
-    authorize_permissions(deps, env, address, &permissions)
 }
 
 /// Verifies that the given address is contained within the given permission group list.
