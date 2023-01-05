@@ -9,6 +9,10 @@ const AUTH_ERR: &str = "Neptune Auth Error -";
 pub enum NeptAuthError {
     #[error("{} Unauthorized: {sender} is not {permission_group}", AUTH_ERR)]
     Unauthorized { sender: Addr, permission_group: String },
-    #[error("{} Invalid permission group: {0}", AUTH_ERR)]
-    InvalidPermissionGroup(String),
+
+    #[error("{} Public must be only entry in permission group list", AUTH_ERR)]
+    InvalidPublic,
+
+    #[error("{} Empty permission group list", AUTH_ERR)]
+    EmptyPermissionGroupList,
 }

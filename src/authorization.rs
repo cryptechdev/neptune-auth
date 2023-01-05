@@ -80,7 +80,7 @@ pub fn authorize_permissions(
 fn flatten_permissions(permission_group_vec: Vec<PermissionGroup>) -> NeptuneAuthorizationResult<PermissionGroup> {
     if permission_group_vec.is_empty() {
         // Don't allow empty permission groups.
-        Err(NeptAuthError::InvalidPermissionGroup("No permission groups supplied".to_string()))
+        Err(NeptAuthError::EmptyPermissionGroupList)
     } else if permission_group_vec.len() == 1 {
         // We only allow the public permission group if it alone.
         Ok(permission_group_vec[0].clone())
@@ -89,11 +89,7 @@ fn flatten_permissions(permission_group_vec: Vec<PermissionGroup>) -> NeptuneAut
         let mut result_vec: Vec<Addr> = vec![];
         for permission_group in permission_group_vec {
             match permission_group {
-                PermissionGroup::Public => {
-                    return Err(NeptAuthError::InvalidPermissionGroup(
-                        "Public must be only entry in permission group list".to_string(),
-                    ))
-                }
+                PermissionGroup::Public => return Err(NeptAuthError::InvalidPublic),
                 PermissionGroup::Restricted(vec) => result_vec = [result_vec, vec].concat(),
             }
         }
