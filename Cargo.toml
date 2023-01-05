@@ -1,14 +1,15 @@
 [package]
-name = "neptune-authorization"
+name = "neptune-auth"
 version = "0.1.0"
 authors = ["Cryptech Developments Ltd."]
 edition = "2021"
 description = "Crate for implementing execution authorization for cosmwasm based smart contracts."
 homepage = "https://nept.finance"
+exclude = ["examples/*"]
 
 [lib]
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-cosmwasm-std = "1.1.5"
-thiserror = "1.0.31"
+cosmwasm-std = "1.1"
+thiserror = "1"
