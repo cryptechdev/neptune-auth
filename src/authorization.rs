@@ -56,10 +56,10 @@ impl GetPermissionGroup for BasePermissionGroups {
 pub fn authorize_permissions(
     deps: Deps, env: &Env, addr: &Addr, permissions: &PermissionGroupList,
 ) -> NeptAuthResult<()> {
-    let collected_permissions: NeptAuthResult<Vec<PermissionGroup>> =
-        permissions.iter().map(|x| x.get_permission_group(deps, env)).collect();
+    let collected_permissions =
+        permissions.iter().map(|x| x.get_permission_group(deps, env)).collect::<Result<Vec<_>, _>>()?;
 
-    let flattened = flatten_permissions(collected_permissions?)?;
+    let flattened = flatten_permissions(collected_permissions)?;
 
     match flattened {
         PermissionGroup::Public => Ok(()),
