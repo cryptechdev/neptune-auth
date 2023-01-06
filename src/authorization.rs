@@ -15,6 +15,8 @@ impl From<Vec<Addr>> for PermissionGroup {
     fn from(vec: Vec<Addr>) -> Self { Self::Restricted(vec) }
 }
 
+pub type PermissionGroupList<'a> = Vec<&'a dyn GetPermissionGroup>;
+
 /// This trait should be derived for any type that requires authorization.
 pub trait NeptuneAuth {
     fn permissions(&self) -> NeptAuthResult<PermissionGroupList>;
@@ -27,12 +29,10 @@ pub trait NeptuneAuth {
 }
 
 /// This trait determines how a permission group is retrieved.
-/// It will usually be derived for your configuration type.
+/// It will usually be derived for your config type.
 pub trait GetPermissionGroup: Debug {
     fn get_permission_group(&self, deps: Deps, env: &Env) -> NeptAuthResult<PermissionGroup>;
 }
-
-pub type PermissionGroupList<'a> = Vec<&'a dyn GetPermissionGroup>;
 
 /// These base permission groups are starting points.
 /// You should create other enums for custom permission groups.
