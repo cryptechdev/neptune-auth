@@ -1,11 +1,17 @@
 [package]
 name = "neptune-auth"
 version = "0.1.0"
-authors = ["Cryptech Developments Ltd."]
+authors = [
+    "Eric Woolsey<ewoolsey@ualberta.ca>",
+    "Cryptech Developments Ltd."
+]
 edition = "2021"
-description = "Crate for implementing execution authorization for cosmwasm based smart contracts."
+description = "Crate for implementing message authorization for cosmwasm smart contracts."
 homepage = "https://nept.finance"
-exclude = ["examples/*"]
+keywords = ["cosmwasm", "smart-contracts", "cosmos", "deployment", "cli"]
+license = "MIT"
+repository = "https://github.com/cryptechdev/neptune-auth"
+readme = "README.md"
 
 [lib]
 crate-type = ["cdylib", "rlib"]
