@@ -64,7 +64,7 @@ pub fn authorize_permissions(
     match flattened {
         PermissionGroup::Public => Ok(()),
         PermissionGroup::Restricted(vec) => {
-            if vec.iter().any(|i| *i == *addr) {
+            if vec.contains(addr) {
                 Ok(())
             } else {
                 Err(NeptAuthError::Unauthorized {
