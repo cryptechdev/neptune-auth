@@ -1,7 +1,7 @@
 use cosmwasm_std::Addr;
 use thiserror::Error;
 
-pub type NeptuneAuthorizationResult<T> = core::result::Result<T, NeptAuthError>;
+pub type NeptAuthResult<T> = core::result::Result<T, NeptAuthError>;
 
 const AUTH_ERR: &str = "Neptune Auth Error -";
 
