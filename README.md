@@ -1,5 +1,6 @@
 # neptune-auth
 This package is used to manage the authentication of callers for any arbitrary message type.
+
 This code is currently not audited and should be used with caution.
 When auditing is complete (sometime in Q1 2023) this warning will be removed and 
 the version will be set to 1.0.0.
