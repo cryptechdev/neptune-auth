@@ -12,7 +12,9 @@ pub enum PermissionGroup {
 }
 
 impl From<Vec<Addr>> for PermissionGroup {
-    fn from(vec: Vec<Addr>) -> Self { Self::Restricted(vec) }
+    fn from(vec: Vec<Addr>) -> Self {
+        Self::Restricted(vec)
+    }
 }
 
 pub type PermissionGroupList<'a> = Vec<&'a dyn GetPermissionGroup>;
@@ -67,10 +69,7 @@ pub fn authorize_permissions(
             if vec.contains(addr) {
                 Ok(())
             } else {
-                Err(NeptAuthError::Unauthorized {
-                    sender:           addr.clone(),
-                    permission_group: format!("{permissions:?}"),
-                })
+                Err(NeptAuthError::Unauthorized { sender: addr.clone(), permission_group: format!("{permissions:?}") })
             }
         }
     }
@@ -82,7 +81,7 @@ fn flatten_permissions(permission_group_vec: Vec<PermissionGroup>) -> NeptAuthRe
         // Don't allow empty permission groups.
         Err(NeptAuthError::EmptyPermissionGroupList)
     } else if permission_group_vec.len() == 1 {
-        // We only allow the public permission group if it alone.
+        // We only allow the public permission group if it is alone.
         Ok(permission_group_vec[0].clone())
     } else {
         // General case, flatten all the permission groups into one.
