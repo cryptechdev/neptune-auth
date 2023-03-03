@@ -7,7 +7,7 @@ const AUTH_ERR: &str = "Neptune Auth Error -";
 
 #[derive(Error, Debug, PartialEq)]
 pub enum NeptAuthError {
-    #[error("{0}")]
+    #[error(transparent)]
     Std(#[from] StdError),
 
     #[error("{} Unauthorized: {sender} is not {permission_group}", AUTH_ERR)]
