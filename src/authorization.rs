@@ -12,9 +12,7 @@ pub enum PermissionGroup {
 }
 
 impl From<Vec<Addr>> for PermissionGroup {
-    fn from(vec: Vec<Addr>) -> Self {
-        Self::Restricted(vec)
-    }
+    fn from(vec: Vec<Addr>) -> Self { Self::Restricted(vec) }
 }
 
 pub type PermissionGroupList<'a> = Vec<&'a dyn GetPermissionGroup>;
@@ -69,7 +67,10 @@ pub fn authorize_permissions(
             if vec.contains(addr) {
                 Ok(())
             } else {
-                Err(NeptAuthError::Unauthorized { sender: addr.clone(), permission_group: format!("{permissions:?}") })
+                Err(NeptAuthError::Unauthorized {
+                    sender:           addr.clone(),
+                    permission_group: format!("{permissions:?}"),
+                })
             }
         }
     }
