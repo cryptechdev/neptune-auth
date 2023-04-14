@@ -12,9 +12,7 @@ pub enum PermissionGroup {
 }
 
 impl From<Vec<Addr>> for PermissionGroup {
-    fn from(vec: Vec<Addr>) -> Self {
-        Self::Restricted(vec)
-    }
+    fn from(vec: Vec<Addr>) -> Self { Self::Restricted(vec) }
 }
 
 pub type PermissionGroupList<'a> = Vec<&'a dyn GetPermissionGroup>;
