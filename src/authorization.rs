@@ -1,6 +1,6 @@
 use std::fmt::Debug;
 
-use cosmwasm_std::{Addr, Deps, Env, CustomQuery, Empty};
+use cosmwasm_std::{Addr, CustomQuery, Deps, Empty, Env};
 
 use crate::error::{NeptAuthError, NeptAuthResult};
 
@@ -12,7 +12,9 @@ pub enum PermissionGroup {
 }
 
 impl From<Vec<Addr>> for PermissionGroup {
-    fn from(vec: Vec<Addr>) -> Self { Self::Restricted(vec) }
+    fn from(vec: Vec<Addr>) -> Self {
+        Self::Restricted(vec)
+    }
 }
 
 pub type PermissionGroupList<'a, C> = Vec<&'a dyn GetPermissionGroup<C>>;
@@ -22,7 +24,12 @@ pub trait NeptuneAuth {
     fn permissions<C: CustomQuery>(&self) -> NeptAuthResult<PermissionGroupList<C>>;
 
     /// This function is placed inside the contracts' execute function.
-    fn neptune_authorize(&self, deps: Deps<impl CustomQuery>, env: &Env, address: &Addr) -> NeptAuthResult<()> {
+    fn neptune_authorize(
+        &self,
+        deps: Deps<impl CustomQuery>,
+        env: &Env,
+        address: &Addr,
+    ) -> NeptAuthResult<()> {
         let permissions = self.permissions()?;
         authorize_permissions(deps, env, address, &permissions)
     }
@@ -47,7 +54,7 @@ pub enum BasePermissionGroups {
 
 /// This is an example of how to implement the GetPermissionGroup trait.
 impl<C> GetPermissionGroup<C> for BasePermissionGroups
-where 
+where
     C: CustomQuery,
 {
     fn get_permission_group(&self, _deps: Deps<C>, env: &Env) -> NeptAuthResult<PermissionGroup> {
@@ -60,10 +67,15 @@ where
 
 /// Verifies that the given address is contained within the given permission group list.
 pub fn authorize_permissions<C: CustomQuery>(
-    deps: Deps<C>, env: &Env, addr: &Addr, permissions: &PermissionGroupList<C>,
+    deps: Deps<C>,
+    env: &Env,
+    addr: &Addr,
+    permissions: &PermissionGroupList<C>,
 ) -> NeptAuthResult<()> {
-    let collected_permissions =
-        permissions.iter().map(|x| x.get_permission_group(deps, env)).collect::<Result<Vec<_>, _>>()?;
+    let collected_permissions = permissions
+        .iter()
+        .map(|x| x.get_permission_group(deps, env))
+        .collect::<Result<Vec<_>, _>>()?;
 
     let flattened = flatten_permissions(collected_permissions)?;
 
@@ -73,14 +85,19 @@ pub fn authorize_permissions<C: CustomQuery>(
             if vec.contains(addr) {
                 Ok(())
             } else {
-                Err(NeptAuthError::Unauthorized { sender: addr.clone(), permission_group: format!("{permissions:?}") })
+                Err(NeptAuthError::Unauthorized {
+                    sender: addr.clone(),
+                    permission_group: format!("{permissions:?}"),
+                })
             }
         }
     }
 }
 
 /// Flattens a permission group list into a single permission group.
-fn flatten_permissions(permission_group_vec: Vec<PermissionGroup>) -> NeptAuthResult<PermissionGroup> {
+fn flatten_permissions(
+    permission_group_vec: Vec<PermissionGroup>,
+) -> NeptAuthResult<PermissionGroup> {
     if permission_group_vec.is_empty() {
         // Don't allow empty permission groups.
         Err(NeptAuthError::EmptyPermissionGroupList)
