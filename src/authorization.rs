@@ -56,10 +56,15 @@ impl GetPermissionGroup for BasePermissionGroups {
 
 /// Verifies that the given address is contained within the given permission group list.
 pub fn authorize_permissions(
-    deps: Deps, env: &Env, addr: &Addr, permissions: &PermissionGroupList,
+    deps: Deps,
+    env: &Env,
+    addr: &Addr,
+    permissions: &PermissionGroupList,
 ) -> NeptAuthResult<()> {
-    let collected_permissions =
-        permissions.iter().map(|x| x.get_permission_group(deps, env)).collect::<Result<Vec<_>, _>>()?;
+    let collected_permissions = permissions
+        .iter()
+        .map(|x| x.get_permission_group(deps, env))
+        .collect::<Result<Vec<_>, _>>()?;
 
     let flattened = flatten_permissions(collected_permissions)?;
 
@@ -69,14 +74,19 @@ pub fn authorize_permissions(
             if vec.contains(addr) {
                 Ok(())
             } else {
-                Err(NeptAuthError::Unauthorized { sender: addr.clone(), permission_group: format!("{permissions:?}") })
+                Err(NeptAuthError::Unauthorized {
+                    sender: addr.clone(),
+                    permission_group: format!("{permissions:?}"),
+                })
             }
         }
     }
 }
 
 /// Flattens a permission group list into a single permission group.
-fn flatten_permissions(permission_group_vec: Vec<PermissionGroup>) -> NeptAuthResult<PermissionGroup> {
+fn flatten_permissions(
+    permission_group_vec: Vec<PermissionGroup>,
+) -> NeptAuthResult<PermissionGroup> {
     if permission_group_vec.is_empty() {
         // Don't allow empty permission groups.
         Err(NeptAuthError::EmptyPermissionGroupList)

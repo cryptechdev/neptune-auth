@@ -11,7 +11,10 @@ pub enum NeptAuthError {
     Std(#[from] StdError),
 
     #[error("{} Unauthorized: {sender} is not {permission_group}", AUTH_ERR)]
-    Unauthorized { sender: Addr, permission_group: String },
+    Unauthorized {
+        sender: Addr,
+        permission_group: String,
+    },
 
     #[error("{} Public must be only entry in permission group list", AUTH_ERR)]
     InvalidPublic,
