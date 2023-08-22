@@ -20,7 +20,7 @@ pub enum Config {
 Then you should impl GetPermissionGroup for the Config.
 ```rust
 impl GetPermissionGroup for Config {
-    fn get_permission_group(&self, deps: Deps, _env: &Env) -> Result<PermissionGroup, NeptAuthError> {
+    fn get_permission_group(&self, deps: Deps<impl CustomQuery>, _env: &Env) -> Result<PermissionGroup, NeptAuthError> {
         // How your config accesses storage is up to you
         // Here we use a map from cw_storage_plus
         Ok(vec![self.load(deps).unwrap()].into())
@@ -48,7 +48,7 @@ impl NeptuneAuth for ExecuteMsg {
 And finally you place the authorization check inside the execute entry point (or wherever else you'd like to verify authorization).
 ```rust
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn execute(deps: DepsMut, env: Env, info: MessageInfo, msg: ExecuteMsg) -> Result<Response, MyError> {
+pub fn execute(deps: DepsMut<impl CustomQuery>, env: Env, info: MessageInfo, msg: ExecuteMsg) -> Result<Response, MyError> {
     // This is the line that checks the permissions
     // It will return an error if the caller does not have the required permissions
     msg.neptune_authorize(deps.as_ref(), &env, &info.sender)?;
