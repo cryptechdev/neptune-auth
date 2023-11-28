@@ -1,8 +1,6 @@
-use std::fmt::Debug;
-
-use cosmwasm_std::{Addr, CustomQuery, Deps, Empty, Env};
-
 use crate::error::{NeptAuthError, NeptAuthResult};
+use cosmwasm_std::{Addr, CustomQuery, Deps, Empty, Env};
+use std::fmt::Debug;
 
 /// The basic type for a permission group.
 #[derive(Clone, Debug)]

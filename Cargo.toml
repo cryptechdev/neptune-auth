@@ -1,10 +1,10 @@
 [package]
 name = "neptune-auth"
-version = "0.1.1"
+version = "1.0.0"
 authors = [
     "Eric Woolsey<eric@cryptech.dev>",
     "Francisco Inacio<cisco@cryptech.dev>",
-    "Cryptech Developments Ltd."
+    "Cryptech Developments Ltd.",
 ]
 edition = "2021"
 description = "Crate for implementing message authorization for cosmwasm smart contracts."
